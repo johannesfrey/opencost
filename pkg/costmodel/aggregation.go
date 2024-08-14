@@ -2230,6 +2230,9 @@ func (a *Accesses) ComputeAllocationHandler(w http.ResponseWriter, r *http.Reque
 
 	qp := httputil.NewQueryParams(r.URL.Query())
 
+	clusterID := qp.Get("cluster", "")
+	env.SetClusterID(clusterID)
+
 	// Window is a required field describing the window of time over which to
 	// compute allocation data.
 	window, err := opencost.ParseWindowWithOffset(qp.Get("window", ""), env.GetParsedUTCOffset())

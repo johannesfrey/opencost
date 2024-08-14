@@ -2,6 +2,7 @@ package env
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/opencost/opencost/core/pkg/env"
@@ -142,6 +143,9 @@ const (
 )
 
 const DefaultConfigMountPath = "/var/configs"
+
+var clusterIDLock sync.RWMutex
+var clusterID string
 
 func IsETLReadOnlyMode() bool {
 	return env.GetBool(ETLReadOnlyMode, false)
@@ -360,7 +364,21 @@ func GetClusterProfile() string {
 // GetClusterID returns the environment variable value for ClusterIDEnvVar which represents the
 // configurable identifier used for multi-cluster metric emission.
 func GetClusterID() string {
-	return env.Get(ClusterIDEnvVar, "")
+	return env.Get(ClusterIDEnvVar, getClusterID())
+}
+
+func getClusterID() string {
+	clusterIDLock.RLock()
+	defer clusterIDLock.RUnlock()
+
+	return clusterID
+}
+
+func SetClusterID(id string) {
+	clusterIDLock.Lock()
+	defer clusterIDLock.Unlock()
+
+	clusterID = id
 }
 
 // GetPromClusterFilter returns environment variable value CurrentClusterIdFilterEnabledVar which
